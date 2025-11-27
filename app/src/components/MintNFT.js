@@ -5,7 +5,7 @@ import './MintNFT.css';
 
 const PACKAGE_ID = '0xe7ad0c7f7020802786370000c809ae8915c7a4ab468ded805d25215c9eb6ee24';
 
-function MintNFT() {
+function MintNFT({ onMintSuccess }) {
     const currentAccount = useCurrentAccount();
     const { mutate: signAndExecute } = useSignAndExecuteTransaction();
 
@@ -15,6 +15,7 @@ function MintNFT() {
     const [status, setStatus] = useState('');
     const [txDigest, setTxDigest] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [imagePreviewError, setImagePreviewError] = useState(false);
 
     const handleMint = async (e) => {
         e.preventDefault();
@@ -56,6 +57,11 @@ function MintNFT() {
                         setDescription('');
                         setImageUrl('');
                         setIsLoading(false);
+                        setImagePreviewError(false);
+                        // Notify parent component to refresh gallery
+                        if (onMintSuccess) {
+                            onMintSuccess();
+                        }
                     },
                     onError: (error) => {
                         setStatus(`Error: ${error.message}`);
@@ -115,10 +121,30 @@ function MintNFT() {
                             id="imageUrl"
                             type="url"
                             value={imageUrl}
-                            onChange={(e) => setImageUrl(e.target.value)}
+                            onChange={(e) => {
+                                setImageUrl(e.target.value);
+                                setImagePreviewError(false);
+                            }}
                             placeholder="https://example.com/image.png"
                             required
                         />
+                        {imageUrl && (
+                            <div className="image-preview">
+                                <p className="preview-label">Preview:</p>
+                                {!imagePreviewError ? (
+                                    <img 
+                                        src={imageUrl} 
+                                        alt="NFT Preview" 
+                                        className="preview-image"
+                                        onError={() => setImagePreviewError(true)}
+                                    />
+                                ) : (
+                                    <div className="preview-error">
+                                        ⚠️ Unable to load image preview
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <button type="submit" className="mint-button" disabled={!currentAccount || isLoading}>
