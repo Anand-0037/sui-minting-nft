@@ -26,8 +26,8 @@
 }
 
 .stat-badge {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
+    background: #d1d5db;
+    color: #1f2937;
     padding: 6px 16px;
     border-radius: 20px;
     font-weight: 600;
@@ -176,8 +176,8 @@
     align-items: center;
     justify-content: center;
     font-size: 4rem;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
+    background: #d1d5db;
+    color: #1f2937;
 }
 
 .listing-details {
@@ -246,8 +246,8 @@
 .buy-btn {
     width: 100%;
     padding: 14px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
+    background: #d1d5db;
+    color: #1f2937;
     border: none;
     border-radius: 8px;
     font-size: 1rem;

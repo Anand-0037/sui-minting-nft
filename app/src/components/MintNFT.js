@@ -3,7 +3,7 @@ import { useCurrentAccount, useSignAndExecuteTransaction, ConnectButton } from '
 import { Transaction } from '@mysten/sui/transactions';
 import './MintNFT.css';
 
-const PACKAGE_ID = '0xe7ad0c7f7020802786370000c809ae8915c7a4ab468ded805d25215c9eb6ee24';
+const PACKAGE_ID = '0xb71b6701e4d6e9baec490494212ce78655760f73388e452ad90fb71d51c3981b';
 
 function MintNFT({ onMintSuccess }) {
     const currentAccount = useCurrentAccount();
@@ -140,7 +140,7 @@ function MintNFT({ onMintSuccess }) {
                                     />
                                 ) : (
                                     <div className="preview-error">
-                                        ⚠️ Unable to load image preview
+                                        Unable to load image preview
                                     </div>
                                 )}
                             </div>

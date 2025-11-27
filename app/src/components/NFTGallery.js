@@ -3,7 +3,7 @@ import { useCurrentAccount, useSuiClientQuery, useSignAndExecuteTransaction } fr
 import { Transaction } from '@mysten/sui/transactions';
 import './NFTGallery.css';
 
-const PACKAGE_ID = '0xe7ad0c7f7020802786370000c809ae8915c7a4ab468ded805d25215c9eb6ee24';
+const PACKAGE_ID = '0xb71b6701e4d6e9baec490494212ce78655760f73388e452ad90fb71d51c3981b';
 
 function NFTCard({ nft, onTransfer, onList }) {
     const [showTransfer, setShowTransfer] = useState(false);
@@ -52,7 +52,7 @@ function NFTCard({ nft, onTransfer, onList }) {
                     />
                 ) : null}
                 <div className="nft-image-placeholder" style={{ display: imageUrl ? 'none' : 'flex' }}>
-                    🖼️
+                    NFT
                 </div>
             </div>
             
@@ -64,15 +64,21 @@ function NFTCard({ nft, onTransfer, onList }) {
                 <div className="nft-actions">
                     <button 
                         className="action-btn transfer-btn"
-                        onClick={() => setShowTransfer(!showTransfer)}
+                        onClick={() => {
+                            setShowTransfer(!showTransfer);
+                            setShowList(false);
+                        }}
                     >
-                        {showTransfer ? 'Cancel' : '📤 Transfer'}
+                        {showTransfer ? 'Cancel' : 'Transfer'}
                     </button>
                     <button 
                         className="action-btn list-btn"
-                        onClick={() => setShowList(!showList)}
+                        onClick={() => {
+                            setShowList(!showList);
+                            setShowTransfer(false);
+                        }}
                     >
-                        {showList ? 'Cancel' : '🏷️ List for Sale'}
+                        {showList ? 'Cancel' : 'List for Sale'}
                     </button>
                 </div>
 
@@ -134,8 +140,11 @@ function NFTGallery({ marketplaceId }) {
     );
 
     const handleTransfer = async (nftId, recipientAddress) => {
-        if (!recipientAddress.startsWith('0x')) {
-            setStatus('Invalid address format. Must start with 0x');
+        // Bug #6 Fix: Proper Sui address validation (0x + 64 hex chars = 66 total)
+        const addressRegex = /^0x[a-fA-F0-9]{64}$/;
+        
+        if (!addressRegex.test(recipientAddress)) {
+            setStatus('Invalid Sui address. Must be 0x followed by 64 hex characters');
             return;
         }
 
@@ -188,14 +197,20 @@ function NFTGallery({ marketplaceId }) {
 
         try {
             const tx = new Transaction();
-            const priceInMist = Math.floor(priceInSui * 1_000_000_000);
+            
+            // Bug #7 Fix: Avoid floating point precision issues
+            const priceStr = priceInSui.toString();
+            const [whole, decimal = '0'] = priceStr.split('.');
+            const paddedDecimal = decimal.padEnd(9, '0').slice(0, 9);
+            // eslint-disable-next-line no-undef
+            const priceInMist = window.BigInt(whole) * window.BigInt(1000000000) + window.BigInt(paddedDecimal);
 
             tx.moveCall({
                 target: `${PACKAGE_ID}::marketplace::list_nft`,
                 arguments: [
                     tx.object(marketplaceId),
                     tx.object(nftId),
-                    tx.pure.u64(priceInMist),
+                    tx.pure.u64(Number(priceInMist)),
                 ],
             });
 
@@ -226,7 +241,7 @@ function NFTGallery({ marketplaceId }) {
         return (
             <div className="gallery-container">
                 <div className="gallery-empty">
-                    <p>🔗 Connect your wallet to view your NFT collection</p>
+                    <p>Connect your wallet to view your NFT collection</p>
                 </div>
             </div>
         );
@@ -238,7 +253,7 @@ function NFTGallery({ marketplaceId }) {
     return (
         <div className="gallery-container">
             <div className="gallery-header">
-                <h2>🎨 My NFT Collection</h2>
+                <h2>My NFT Collection</h2>
                 <div className="nft-count">
                     <span className="count-badge">{nftCount}</span> NFT{nftCount !== 1 ? 's' : ''} owned
                 </div>
@@ -246,7 +261,7 @@ function NFTGallery({ marketplaceId }) {
 
             {status && (
                 <div className={`gallery-status ${status.includes('failed') || status.includes('Error') ? 'error' : 'success'}`}>
-                    {isLoading && <span className="spinner">⏳</span>}
+                    {isLoading && <span className="spinner"></span>}
                     {status}
                 </div>
             )}
@@ -258,7 +273,7 @@ function NFTGallery({ marketplaceId }) {
                 </div>
             ) : nftCount === 0 ? (
                 <div className="gallery-empty">
-                    <p>🖼️ No NFTs yet!</p>
+                    <p>No NFTs yet!</p>
                     <p>Mint your first NFT to start your collection.</p>
                 </div>
             ) : (

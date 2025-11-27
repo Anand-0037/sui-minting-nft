@@ -29,8 +29,8 @@
 }
 
 .count-badge {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: #d1d5db;
+    color: #1f2937;
     padding: 4px 12px;
     border-radius: 20px;
     font-weight: 600;
@@ -142,8 +142,8 @@
     align-items: center;
     justify-content: center;
     font-size: 4rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: #d1d5db;
+    color: #1f2937;
 }
 
 .nft-details {
@@ -238,8 +238,8 @@
 .confirm-btn {
     width: 100%;
     padding: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: #d1d5db;
+    color: #1f2937;
     border: none;
     border-radius: 8px;
     font-weight: 600;

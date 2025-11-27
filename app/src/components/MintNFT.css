@@ -176,9 +176,8 @@
 }
 
 .mint-button.minting {
-    background: linear-gradient(90deg, #374151 0%, #6b7280 50%, #374151 100%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
+    background: #d1d5db;
+    opacity: 0.7;
 }
 
 @keyframes shimmer {

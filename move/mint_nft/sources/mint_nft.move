@@ -101,14 +101,16 @@ public entry fun update_attribute(
     assert!(nft.creator == ctx.sender(), 0);
     
     let old_value = df::remove<String, String>(&mut nft.id, key);
-    df::add(&mut nft.id, key, new_value);
-
+    
+    // Emit event before adding new value (use old_value before it's moved)
     event::emit(AttributeUpdated {
         nft_id: object::id(nft),
         key,
         old_value,
         new_value,
     });
+    
+    df::add(&mut nft.id, key, new_value);
 }
 
 /// Remove an attribute (only creator can remove)
@@ -134,7 +136,10 @@ public fun get_attribute(nft: &NFT, key: String): &String {
 
 // ============ Batch Minting ============
 
-/// Mint multiple NFTs in a single transaction
+// Maximum NFTs that can be minted in a single batch
+const MAX_BATCH_SIZE: u64 = 50;
+
+/// Mint multiple NFTs in a single transaction (max 50)
 #[allow(lint(public_entry))]
 public entry fun batch_mint(
     names: vector<String>,
@@ -144,6 +149,7 @@ public entry fun batch_mint(
 ) {
     let len = names.length();
     assert!(len == descriptions.length() && len == uris.length(), 1);
+    assert!(len <= MAX_BATCH_SIZE, 2); // Prevent gas exhaustion
     
     let mut i = 0;
     while (i < len) {

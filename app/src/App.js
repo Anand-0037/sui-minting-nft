@@ -7,6 +7,7 @@ import './App.css';
 import MintNFT from './components/MintNFT';
 import NFTGallery from './components/NFTGallery';
 import Marketplace from './components/Marketplace';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const { networkConfig } = createNetworkConfig({
     testnet: { url: getFullnodeUrl('testnet') },
@@ -17,9 +18,9 @@ const queryClient = new QueryClient();
 // Tab navigation component
 function TabNavigation({ activeTab, setActiveTab }) {
     const tabs = [
-        { id: 'mint', label: '🎨 Mint', icon: '✨' },
-        { id: 'gallery', label: '🖼️ Gallery', icon: '📦' },
-        { id: 'marketplace', label: '🏪 Market', icon: '💰' },
+        { id: 'mint', label: 'Mint', icon: '' },
+        { id: 'gallery', label: 'Gallery', icon: '' },
+        { id: 'marketplace', label: 'Market', icon: '' },
     ];
 
     return (
@@ -44,7 +45,7 @@ function AppHeader() {
     return (
         <header className="app-header">
             <div className="header-brand">
-                <h1>🎭 Sui NFT Studio</h1>
+                <h1>Sui NFT Studio</h1>
                 <span className="network-badge">Testnet</span>
             </div>
             <div className="header-wallet">
@@ -79,7 +80,7 @@ function AppContent() {
                     <MintNFT onMintSuccess={handleMintSuccess} />
                 )}
                 {activeTab === 'gallery' && (
-                    <NFTGallery key={refreshKey} />
+                    <NFTGallery key={refreshKey} marketplaceId="0xfe0ab263064cef19889664cfa066ba4ab2945ee11ec759b93960592d9e0d2174" />
                 )}
                 {activeTab === 'marketplace' && (
                     <Marketplace />
@@ -87,7 +88,7 @@ function AppContent() {
             </main>
 
             <footer className="app-footer">
-                <p>Built for Sui Workshop Day 2 • <a href="https://github.com/Anand-0037" target="_blank" rel="noopener noreferrer">@Anand-0037</a></p>
+                <p><a href="https://github.com/Anand-0037" target="_blank" rel="noopener noreferrer">@Anand-0037</a></p>
             </footer>
         </div>
     );
@@ -95,15 +96,17 @@ function AppContent() {
 
 function App() {
     return (
-        <QueryClientProvider client={queryClient}>
-            <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
-                <WalletProvider autoConnect>
-                    <div className="App">
-                        <AppContent />
-                    </div>
-                </WalletProvider>
-            </SuiClientProvider>
-        </QueryClientProvider>
+        <ErrorBoundary>
+            <QueryClientProvider client={queryClient}>
+                <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
+                    <WalletProvider autoConnect>
+                        <div className="App">
+                            <AppContent />
+                        </div>
+                    </WalletProvider>
+                </SuiClientProvider>
+            </QueryClientProvider>
+        </ErrorBoundary>
     );
 }
 

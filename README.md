@@ -38,8 +38,10 @@ Copy the Package ID from output. Also note the **Marketplace shared object ID** 
 Update `app/src/components/MintNFT.js`, `NFTGallery.js`, and `Marketplace.js`:
 
 ```javascript
-const PACKAGE_ID = "0xYOUR_PACKAGE_ID";
-const MARKETPLACE_ID = "0xYOUR_MARKETPLACE_ID"; // For marketplace
+const PACKAGE_ID =
+  "0x15729923551da1f60e3e0cc443754a3d0db6c8d5b8648f3042b20b4f8dde62cd";
+const MARKETPLACE_ID =
+  "0xc32f5ea9a63bb72912583ed7e5eece5ce1ae58804d366c5237d291ee03497da2"; // For marketplace
 ```
 
 ### 3. Run App
