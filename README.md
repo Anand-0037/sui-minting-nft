@@ -2,6 +2,17 @@
 
 A decentralized application for minting, managing, and trading NFTs on Sui blockchain with Move smart contracts and React frontend.
 
+## 📸 Screenshots
+
+### NFT Minting Interface
+![Mint NFT Website](images/mint-nft%20website.jpg)
+
+### NFT Collection Gallery
+![NFT Collection](images/nft%20collection%20images%20list.jpg)
+
+### NFT Marketplace
+![Marketplace](images/marketplace.jpg)
+
 ## 🚀 Features
 
 ### Core Features
