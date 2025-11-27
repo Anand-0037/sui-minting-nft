@@ -2,7 +2,154 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+}
+
+.app-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header Styles */
+.app-header {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    padding: 16px 24px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-brand h1 {
+    font-size: 1.5rem;
+    color: #1f2937;
+    margin: 0;
+}
+
+.network-badge {
+    background: #d1d5db;
+    color: #1f2937;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.header-wallet {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.wallet-address {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+/* Tab Navigation */
+.tab-navigation {
+    display: flex;
     justify-content: center;
+    gap: 8px;
+    padding: 16px 24px;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+.tab-btn.active {
+    background: #d1d5db;
+    color: #1f2937;
+}
+
+/* Main Content */
+.app-main {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Footer */
+.app-footer {
+    text-align: center;
     padding: 20px;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.app-footer a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.app-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .app-header {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px 16px;
+    }
+
+    .header-brand h1 {
+        font-size: 1.25rem;
+    }
+
+    .tab-navigation {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 12px 16px;
+    }
+
+    .tab-btn {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .app-main {
+        padding: 16px;
+    }
+
+    .wallet-address {
+        display: none;
+    }
 }
