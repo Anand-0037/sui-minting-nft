@@ -39,6 +39,10 @@ npm start
 
 Opens at http://localhost:3000
 
+## instructions 
+- do upload image on imgur or ipfs  while testing minting nft
+- 
+
 ## Project Structure
 
 ```

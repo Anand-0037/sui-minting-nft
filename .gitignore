@@ -1,10 +1,23 @@
-build/*
-traces/*
+# Build outputs
+build/
+move/mint_nft/build/
+
+# Sui artifacts
+traces/
 .trace
 .coverage*
+
+# Environment files
 .env
 app/.env
+
+# Dependencies
 node_modules/
-app/ 
+
+# IDE
 .vscode/
-digest.txt 
+
+# Misc
+digest.txt
+*.log
+
