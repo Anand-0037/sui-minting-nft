@@ -1,0 +1,10 @@
+build/*
+traces/*
+.trace
+.coverage*
+.env
+app/.env
+node_modules/
+app/ 
+.vscode/
+digest.txt 
