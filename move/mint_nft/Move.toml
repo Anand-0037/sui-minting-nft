@@ -1,0 +1,16 @@
+[package]
+name = "mint_nft"
+edition = "2024.beta"
+license = "MIT"
+authors = ["Anand Vashishtha "https://github.com/Anand-0037"]
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
+
+[addresses]
+mint_nft = "0x0"
+
+[dev-dependencies]
+
+[dev-addresses]
+
