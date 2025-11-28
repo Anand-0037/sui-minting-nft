@@ -1,25 +1,21 @@
-import React, { useState } from 'react';
-import { useCurrentAccount, useSuiClientQuery, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useCurrentAccount, useSuiClientQuery, useSignAndExecuteTransaction, useSuiClient } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
+import { CONFIG, formatAddress, isValidSuiAddress, suiToMist, extractImageUrl } from '../config';
 import './NFTGallery.css';
 
-const PACKAGE_ID = '0xb71b6701e4d6e9baec490494212ce78655760f73388e452ad90fb71d51c3981b';
-
-function NFTCard({ nft, onTransfer, onList }) {
+function NFTCard({ nft, onTransfer, onList, loadingNftId }) {
     const [showTransfer, setShowTransfer] = useState(false);
     const [showList, setShowList] = useState(false);
     const [recipient, setRecipient] = useState('');
     const [price, setPrice] = useState('');
+    const [imageError, setImageError] = useState(false);
 
     const content = nft.data?.content;
     const fields = content?.fields || {};
     const objectId = nft.data?.objectId;
-
-    // Handle different URL formats
-    let imageUrl = '';
-    if (fields.url) {
-        imageUrl = typeof fields.url === 'string' ? fields.url : fields.url.fields?.url || '';
-    }
+    const isThisLoading = loadingNftId === objectId;
+    const imageUrl = extractImageUrl(fields);
 
     const handleTransferSubmit = () => {
         if (recipient && objectId) {
@@ -40,45 +36,45 @@ function NFTCard({ nft, onTransfer, onList }) {
     return (
         <div className="nft-card">
             <div className="nft-image-container">
-                {imageUrl ? (
+                {imageUrl && !imageError ? (
                     <img 
                         src={imageUrl} 
                         alt={fields.name || 'NFT'} 
                         className="nft-image"
-                        onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                        }}
+                        onError={() => setImageError(true)}
                     />
-                ) : null}
-                <div className="nft-image-placeholder" style={{ display: imageUrl ? 'none' : 'flex' }}>
-                    NFT
-                </div>
+                ) : (
+                    <div className="listing-image-placeholder">
+                        NFT
+                    </div>
+                )}
             </div>
             
             <div className="nft-details">
                 <h3 className="nft-name">{fields.name || 'Unnamed NFT'}</h3>
                 <p className="nft-description">{fields.description || 'No description'}</p>
-                <p className="nft-id">ID: {objectId?.slice(0, 8)}...{objectId?.slice(-6)}</p>
+                <p className="nft-id">ID: {formatAddress(objectId)}</p>
                 
                 <div className="nft-actions">
                     <button 
                         className="action-btn transfer-btn"
+                        disabled={isThisLoading}
                         onClick={() => {
                             setShowTransfer(!showTransfer);
                             setShowList(false);
                         }}
                     >
-                        {showTransfer ? 'Cancel' : 'Transfer'}
+                        {isThisLoading ? 'Processing...' : showTransfer ? 'Cancel' : 'Transfer'}
                     </button>
                     <button 
                         className="action-btn list-btn"
+                        disabled={isThisLoading}
                         onClick={() => {
                             setShowList(!showList);
                             setShowTransfer(false);
                         }}
                     >
-                        {showList ? 'Cancel' : 'List for Sale'}
+                        {isThisLoading ? 'Processing...' : showList ? 'Cancel' : 'List for Sale'}
                     </button>
                 </div>
 
@@ -118,16 +114,19 @@ function NFTCard({ nft, onTransfer, onList }) {
 
 function NFTGallery({ marketplaceId }) {
     const currentAccount = useCurrentAccount();
+    const suiClient = useSuiClient();
     const { mutate: signAndExecute } = useSignAndExecuteTransaction();
     const [status, setStatus] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [loadingNftId, setLoadingNftId] = useState(null);
+    const [stakedNftIds, setStakedNftIds] = useState(new Set());
+    const [listedNftIds, setListedNftIds] = useState(new Set());
 
     const { data: ownedObjects, isLoading: isLoadingNFTs, refetch } = useSuiClientQuery(
         'getOwnedObjects',
         {
             owner: currentAccount?.address,
             filter: {
-                StructType: `${PACKAGE_ID}::mint_nft::NFT`,
+                StructType: `${CONFIG.PACKAGE_ID}::mint_nft::NFT`,
             },
             options: {
                 showContent: true,
@@ -139,23 +138,124 @@ function NFTGallery({ marketplaceId }) {
         }
     );
 
+    // Fetch staked NFT IDs to filter them out of the gallery
+    useEffect(() => {
+        const fetchStakedNfts = async () => {
+            if (!currentAccount || !CONFIG.STAKING_POOL_ID) {
+                setStakedNftIds(new Set());
+                return;
+            }
+
+            try {
+                const stakeRecords = await suiClient.getOwnedObjects({
+                    owner: currentAccount.address,
+                    filter: {
+                        StructType: `${CONFIG.PACKAGE_ID}::staking::StakeRecord`,
+                    },
+                    options: {
+                        showContent: true,
+                    },
+                });
+
+                const stakedIds = new Set(
+                    stakeRecords.data
+                        .map(obj => obj.data?.content?.fields?.nft?.fields?.id?.id)
+                        .filter(Boolean)
+                );
+                setStakedNftIds(stakedIds);
+            } catch (error) {
+                console.error('Error fetching staked NFTs:', error);
+            }
+        };
+
+        fetchStakedNfts();
+    }, [currentAccount, suiClient]);
+
+    // Fetch listed NFT IDs to filter them out (NFTs in escrow)
+    useEffect(() => {
+        const fetchListedNfts = async () => {
+            if (!currentAccount || !CONFIG.MARKETPLACE_ID) {
+                setListedNftIds(new Set());
+                return;
+            }
+
+            try {
+                // Query NFTListed events by this user
+                const listedEvents = await suiClient.queryEvents({
+                    query: {
+                        MoveEventType: `${CONFIG.PACKAGE_ID}::marketplace::NFTListed`,
+                    },
+                    limit: 100,
+                });
+
+                // Get NFT IDs listed by current user
+                const userListedIds = listedEvents.data
+                    .filter(event => event.parsedJson?.seller === currentAccount.address)
+                    .map(event => event.parsedJson?.nft_id);
+
+                // Query delisted events to remove from the set
+                const delistedEvents = await suiClient.queryEvents({
+                    query: {
+                        MoveEventType: `${CONFIG.PACKAGE_ID}::marketplace::NFTDelisted`,
+                    },
+                    limit: 100,
+                });
+
+                const delistedIds = new Set(
+                    delistedEvents.data
+                        .filter(event => event.parsedJson?.seller === currentAccount.address)
+                        .map(event => event.parsedJson?.nft_id)
+                );
+
+                // Query sold events to remove from the set
+                const soldEvents = await suiClient.queryEvents({
+                    query: {
+                        MoveEventType: `${CONFIG.PACKAGE_ID}::marketplace::NFTSold`,
+                    },
+                    limit: 100,
+                });
+
+                const soldIds = new Set(
+                    soldEvents.data.map(event => event.parsedJson?.nft_id)
+                );
+
+                // Listed = listed - delisted - sold
+                const activelyListedIds = new Set(
+                    userListedIds.filter(id => id && !delistedIds.has(id) && !soldIds.has(id))
+                );
+
+                setListedNftIds(activelyListedIds);
+            } catch (error) {
+                console.error('Error fetching listed NFTs:', error);
+            }
+        };
+
+        fetchListedNfts();
+    }, [currentAccount, suiClient]);
+
+    // Filter out staked AND listed NFTs from the gallery
+    const availableNfts = useMemo(() => {
+        if (!ownedObjects?.data) return [];
+        return ownedObjects.data.filter(nft => {
+            const nftId = nft.data?.objectId;
+            return !stakedNftIds.has(nftId) && !listedNftIds.has(nftId);
+        });
+    }, [ownedObjects, stakedNftIds, listedNftIds]);
+
     const handleTransfer = async (nftId, recipientAddress) => {
-        // Bug #6 Fix: Proper Sui address validation (0x + 64 hex chars = 66 total)
-        const addressRegex = /^0x[a-fA-F0-9]{64}$/;
-        
-        if (!addressRegex.test(recipientAddress)) {
-            setStatus('Invalid Sui address. Must be 0x followed by 64 hex characters');
+        if (!isValidSuiAddress(recipientAddress)) {
+            setStatus('Invalid address. Must be 0x followed by 64 hex characters');
             return;
         }
 
         setStatus('Transferring NFT...');
-        setIsLoading(true);
+        setLoadingNftId(nftId);
 
         try {
             const tx = new Transaction();
 
             tx.moveCall({
-                target: `${PACKAGE_ID}::mint_nft::transfer_nft`,
+                target: `${CONFIG.PACKAGE_ID}::mint_nft::transfer_nft`,
                 arguments: [
                     tx.object(nftId),
                     tx.pure.address(recipientAddress),
@@ -165,10 +265,9 @@ function NFTGallery({ marketplaceId }) {
             signAndExecute(
                 { transaction: tx },
                 {
-                    onSuccess: (result) => {
+                    onSuccess: () => {
                         setStatus('NFT transferred successfully!');
-                        setIsLoading(false);
-                        // Refresh the gallery after transfer
+                        setLoadingNftId(null);
                         setTimeout(() => {
                             refetch();
                             setStatus('');
@@ -176,37 +275,51 @@ function NFTGallery({ marketplaceId }) {
                     },
                     onError: (error) => {
                         setStatus(`Transfer failed: ${error.message}`);
-                        setIsLoading(false);
+                        setLoadingNftId(null);
+                        setTimeout(() => setStatus(''), 5000);
                     },
                 }
             );
         } catch (error) {
             setStatus(`Error: ${error.message}`);
-            setIsLoading(false);
+            setLoadingNftId(null);
         }
     };
 
     const handleList = async (nftId, priceInSui) => {
         if (!marketplaceId) {
-            setStatus('Marketplace not configured. Deploy marketplace contract first.');
+            setStatus('Marketplace not configured');
+            return;
+        }
+
+        // Validate price
+        if (!priceInSui || isNaN(priceInSui) || priceInSui <= 0) {
+            setStatus('Please enter a valid price greater than 0');
+            setTimeout(() => setStatus(''), 3000);
+            return;
+        }
+
+        if (priceInSui < 0.001) {
+            setStatus('Minimum listing price is 0.001 SUI');
+            setTimeout(() => setStatus(''), 3000);
+            return;
+        }
+
+        if (priceInSui > 1000000) {
+            setStatus('Maximum listing price is 1,000,000 SUI');
+            setTimeout(() => setStatus(''), 3000);
             return;
         }
 
         setStatus('Listing NFT...');
-        setIsLoading(true);
+        setLoadingNftId(nftId);
 
         try {
             const tx = new Transaction();
-            
-            // Bug #7 Fix: Avoid floating point precision issues
-            const priceStr = priceInSui.toString();
-            const [whole, decimal = '0'] = priceStr.split('.');
-            const paddedDecimal = decimal.padEnd(9, '0').slice(0, 9);
-            // eslint-disable-next-line no-undef
-            const priceInMist = window.BigInt(whole) * window.BigInt(1000000000) + window.BigInt(paddedDecimal);
+            const priceInMist = suiToMist(priceInSui);
 
             tx.moveCall({
-                target: `${PACKAGE_ID}::marketplace::list_nft`,
+                target: `${CONFIG.PACKAGE_ID}::marketplace::list_nft`,
                 arguments: [
                     tx.object(marketplaceId),
                     tx.object(nftId),
@@ -219,7 +332,7 @@ function NFTGallery({ marketplaceId }) {
                 {
                     onSuccess: () => {
                         setStatus('NFT listed successfully!');
-                        setIsLoading(false);
+                        setLoadingNftId(null);
                         setTimeout(() => {
                             refetch();
                             setStatus('');
@@ -227,13 +340,14 @@ function NFTGallery({ marketplaceId }) {
                     },
                     onError: (error) => {
                         setStatus(`Listing failed: ${error.message}`);
-                        setIsLoading(false);
+                        setLoadingNftId(null);
+                        setTimeout(() => setStatus(''), 5000);
                     },
                 }
             );
         } catch (error) {
             setStatus(`Error: ${error.message}`);
-            setIsLoading(false);
+            setLoadingNftId(null);
         }
     };
 
@@ -247,21 +361,28 @@ function NFTGallery({ marketplaceId }) {
         );
     }
 
-    const nfts = ownedObjects?.data || [];
-    const nftCount = nfts.length;
+    const nftCount = availableNfts.length;
+    const stakedCount = stakedNftIds.size;
+    const listedCount = listedNftIds.size;
 
     return (
         <div className="gallery-container">
             <div className="gallery-header">
                 <h2>My NFT Collection</h2>
                 <div className="nft-count">
-                    <span className="count-badge">{nftCount}</span> NFT{nftCount !== 1 ? 's' : ''} owned
+                    <span className="count-badge">{nftCount}</span> NFT{nftCount !== 1 ? 's' : ''} available
+                    {(stakedCount > 0 || listedCount > 0) && (
+                        <span className="staked-info">
+                            {stakedCount > 0 && ` (${stakedCount} staked)`}
+                            {listedCount > 0 && ` (${listedCount} listed)`}
+                        </span>
+                    )}
                 </div>
             </div>
 
             {status && (
                 <div className={`gallery-status ${status.includes('failed') || status.includes('Error') ? 'error' : 'success'}`}>
-                    {isLoading && <span className="spinner"></span>}
+                    {loadingNftId && <span className="spinner"></span>}
                     {status}
                 </div>
             )}
@@ -273,17 +394,22 @@ function NFTGallery({ marketplaceId }) {
                 </div>
             ) : nftCount === 0 ? (
                 <div className="gallery-empty">
-                    <p>No NFTs yet!</p>
-                    <p>Mint your first NFT to start your collection.</p>
+                    <p>No NFTs available!</p>
+                    <p>
+                        {(stakedCount > 0 || listedCount > 0) 
+                            ? 'Your NFTs are staked or listed. Unstake or delist to see them here.' 
+                            : 'Mint your first NFT to start your collection.'}
+                    </p>
                 </div>
             ) : (
                 <div className="nft-grid">
-                    {nfts.map((nft) => (
+                    {availableNfts.map((nft) => (
                         <NFTCard 
                             key={nft.data?.objectId} 
                             nft={nft} 
                             onTransfer={handleTransfer}
                             onList={handleList}
+                            loadingNftId={loadingNftId}
                         />
                     ))}
                 </div>

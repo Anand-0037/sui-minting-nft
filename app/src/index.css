@@ -1,20 +1,194 @@
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ============================
+   Sui NFT Studio - Warm Branded Theme
+   Professional, Clean, Minimal
+   ============================ */
+
+:root {
+    /* Warm Color Palette */
+    --primary: #c2410c;
+    --primary-light: #ea580c;
+    --primary-dark: #9a3412;
+    --secondary: #d97706;
+    --accent: #0d9488;
+    
+    /* Neutral Warm Tones */
+    --background: #1c1917;
+    --background-light: #292524;
+    --background-lighter: #44403c;
+    --surface: #292524;
+    --surface-light: #44403c;
+    
+    /* Text Colors */
+    --text-primary: #fafaf9;
+    --text-secondary: #a8a29e;
+    --text-muted: #78716c;
+    
+    /* Status Colors */
+    --success: #059669;
+    --warning: #d97706;
+    --error: #dc2626;
+    --info: #0891b2;
+    
+    /* Card Effects */
+    --card-bg: rgba(41, 37, 36, 0.95);
+    --card-border: rgba(120, 113, 108, 0.25);
+    --card-hover: rgba(68, 64, 60, 0.95);
+    
+    /* Borders & Shadows */
+    --border-radius-sm: 6px;
+    --border-radius-md: 10px;
+    --border-radius-lg: 14px;
+    --border-radius-xl: 20px;
+    
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-        sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: #f3f4f6;
+    background: var(--background);
+    color: var(--text-primary);
     min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* Subtle background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(ellipse at 0% 0%, rgba(194, 65, 12, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 100% 100%, rgba(217, 119, 6, 0.04) 0%, transparent 50%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
 }
 
 code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-        monospace;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--surface);
+    padding: 2px 6px;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.9em;
+}
+
+a {
+    color: var(--primary-light);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--primary);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--background-lighter);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* Selection */
+::selection {
+    background: var(--primary);
+    color: white;
+}
+
+/* Focus */
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Resets */
+button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+input, textarea, select {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.4s ease forwards;
+}
+
+.animate-slideUp {
+    animation: slideUp 0.4s ease forwards;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
 }

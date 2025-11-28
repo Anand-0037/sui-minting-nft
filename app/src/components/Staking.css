@@ -1,0 +1,516 @@
+/* ============================
+   NFT Staking - Clean Professional Design
+   ============================ */
+
+.staking-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+}
+
+/* Header Section */
+.staking-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.staking-header h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-primary);
+}
+
+.staking-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: var(--spacing-xl);
+}
+
+/* Stats Cards */
+.staking-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    min-width: 140px;
+    text-align: center;
+    transition: border-color 0.2s ease;
+}
+
+.stat-card:hover {
+    border-color: var(--primary);
+}
+
+.stat-card.rewards {
+    background: rgba(5, 150, 105, 0.05);
+    border-color: var(--accent);
+}
+
+.stat-value {
+    display: block;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.stat-card.rewards .stat-value {
+    color: var(--accent);
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Status Messages */
+.staking-status {
+    padding: 12px 16px;
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+    font-weight: 500;
+}
+
+.staking-status.success {
+    background: rgba(5, 150, 105, 0.1);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+}
+
+.staking-status.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--error);
+    color: var(--error);
+}
+
+/* Section Styles */
+.staking-section {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+.staking-section h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-lg);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.staking-section h3 .section-icon {
+    font-size: 1.25rem;
+    color: var(--primary);
+}
+
+/* Empty States */
+.staking-empty,
+.staking-notice {
+    text-align: center;
+    padding: 60px var(--spacing-lg);
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+}
+
+.staking-empty h2,
+.staking-notice h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.staking-notice h3 {
+    color: var(--warning);
+    margin-bottom: var(--spacing-md);
+}
+
+.staking-empty p,
+.staking-notice p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.staking-empty .empty-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-muted);
+}
+
+.staking-empty-section {
+    text-align: center;
+    padding: 40px;
+    background: var(--background);
+    border-radius: var(--border-radius-md);
+    color: var(--text-muted);
+}
+
+.staking-empty-section p {
+    margin: 0;
+}
+
+/* Loading State */
+.staking-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    color: var(--text-secondary);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--spacing-md);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Staked NFT Grid */
+.staked-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+/* Staked NFT Card */
+.staked-nft-card {
+    background: var(--surface);
+    border: 1px solid var(--primary);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.staked-nft-card:hover {
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15);
+}
+
+.staked-nft-image {
+    position: relative;
+    height: 160px;
+    background: var(--background);
+    overflow: hidden;
+}
+
+.staked-nft-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.staked-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--background);
+}
+
+.staked-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--primary);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.staked-nft-details {
+    padding: var(--spacing-md);
+}
+
+.staked-nft-details h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.stake-duration {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.rewards-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(5, 150, 105, 0.08);
+    border: 1px solid var(--accent);
+    padding: 12px 14px;
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.rewards-label {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.rewards-value {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.unstake-btn {
+    width: 100%;
+    padding: 12px 16px;
+    background: transparent;
+    color: var(--error);
+    border: 1px solid var(--error);
+    border-radius: var(--border-radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.unstake-btn:hover:not(:disabled) {
+    background: var(--error);
+    color: white;
+}
+
+.unstake-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Unstaked NFT Grid */
+.unstaked-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--spacing-md);
+}
+
+/* Unstaked NFT Card */
+.unstaked-nft-card {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+
+.unstaked-nft-card:hover {
+    border-color: var(--accent);
+}
+
+.unstaked-nft-image {
+    height: 140px;
+    background: var(--background);
+    overflow: hidden;
+}
+
+.unstaked-nft-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.unstaked-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--background);
+}
+
+.unstaked-nft-details {
+    padding: var(--spacing-md);
+}
+
+.unstaked-nft-details h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    margin-bottom: var(--spacing-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.unstaked-nft-details .nft-id {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    margin-bottom: var(--spacing-md);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.stake-btn {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.stake-btn:hover:not(:disabled) {
+    background: #047857;
+}
+
+.stake-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Info Box */
+.staking-info {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+}
+
+.staking-info h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    font-size: 1rem;
+}
+
+.staking-info ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.staking-info li {
+    color: var(--text-secondary);
+    padding: 10px 0;
+    padding-left: 24px;
+    position: relative;
+    line-height: 1.6;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.staking-info li:last-child {
+    border-bottom: none;
+}
+
+.staking-info li::before {
+    content: '•';
+    position: absolute;
+    left: 8px;
+    color: var(--primary);
+    font-weight: bold;
+}
+
+.staking-info strong {
+    color: var(--accent);
+}
+
+.staking-disclaimer {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: rgba(217, 119, 6, 0.1);
+    border: 1px solid var(--primary);
+    border-radius: var(--border-radius-md);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.staking-disclaimer strong {
+    color: var(--primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .staking-container {
+        padding: var(--spacing-md);
+    }
+
+    .staking-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .staking-stats {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .stat-card {
+        width: 100%;
+        max-width: 200px;
+    }
+
+    .staked-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .unstaked-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+
+    .staked-nft-image {
+        height: 140px;
+    }
+
+    .unstaked-nft-image {
+        height: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .staking-section {
+        padding: var(--spacing-md);
+    }
+
+    .unstaked-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rewards-display {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        text-align: center;
+    }
+}

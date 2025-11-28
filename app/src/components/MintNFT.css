@@ -1,167 +1,176 @@
 .mint-container {
     width: 100%;
-    max-width: 600px;
+    max-width: 520px;
     margin: 0 auto;
+    animation: slideUp 0.4s ease forwards;
 }
 
 .mint-card {
-    background: white;
-    border-radius: 20px;
-    padding: 40px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius-xl);
+    padding: 36px;
 }
 
 .mint-card h1 {
     text-align: center;
-    color: #333;
-    margin-bottom: 30px;
-    font-size: 2rem;
+    font-family: 'Space Grotesk', sans-serif;
+    margin-bottom: var(--spacing-xl);
+    font-size: 1.5rem;
+    color: var(--text-primary);
 }
 
 .wallet-section {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: var(--spacing-lg);
 }
 
 .connected-info {
     text-align: center;
-    margin-bottom: 20px;
-    padding: 10px;
-    background: #f0f9ff;
-    border-radius: 8px;
-    color: #0369a1;
+    margin-bottom: var(--spacing-lg);
+    padding: 10px 16px;
+    background: rgba(5, 150, 105, 0.1);
+    border: 1px solid var(--success);
+    border-radius: var(--border-radius-md);
+    color: var(--success);
     font-weight: 500;
+    font-size: 0.9rem;
 }
 
 .mint-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: var(--spacing-lg);
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--spacing-sm);
 }
 
 .form-group label {
-    font-weight: 600;
-    color: #374151;
-    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.9rem;
 }
 
 .form-group input,
 .form-group textarea {
-    padding: 12px 16px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.2s;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius-md);
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    transition: border-color var(--transition-fast);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-muted);
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #374151;
+    border-color: var(--primary);
 }
 
 .mint-button {
-    background: #374151;
+    background: var(--primary);
     color: white;
     border: none;
-    padding: 16px 32px;
-    border-radius: 8px;
-    font-size: 1.1rem;
+    padding: 14px 28px;
+    border-radius: var(--border-radius-md);
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    margin-top: 10px;
+    transition: all var(--transition-normal);
+    margin-top: var(--spacing-md);
 }
 
 .mint-button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(55, 65, 81, 0.3);
+    background: var(--primary-light);
 }
 
 .mint-button:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
 .status-message {
-    margin-top: 20px;
-    padding: 12px 16px;
-    border-radius: 8px;
+    margin-top: var(--spacing-lg);
+    padding: 14px 18px;
+    border-radius: var(--border-radius-md);
     text-align: center;
     font-weight: 500;
+    font-size: 0.9rem;
 }
 
 .status-message.success {
-    background: #d1fae5;
-    color: #065f46;
+    background: rgba(5, 150, 105, 0.1);
+    color: var(--success);
+    border: 1px solid var(--success);
 }
 
 .status-message.error {
-    background: #fee2e2;
-    color: #991b1b;
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--error);
+    border: 1px solid var(--error);
 }
 
 .explorer-link {
     text-align: center;
-    margin-top: 15px;
+    margin-top: var(--spacing-md);
 }
 
 .explorer-link a {
-    color: #374151;
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.2s;
-}
-
-.explorer-link a:hover {
-    color: #111827;
+    color: var(--primary-light);
+    font-weight: 500;
+    font-size: 0.9rem;
 }
 
 .info-box {
-    margin-top: 30px;
-    padding: 20px;
-    background: #f9fafb;
-    border-radius: 8px;
-    border-left: 4px solid #374151;
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background: var(--surface);
+    border-radius: var(--border-radius-md);
+    border-left: 3px solid var(--primary);
 }
 
 .info-box h3 {
-    color: #374151;
-    margin-bottom: 12px;
-    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    font-size: 1rem;
 }
 
 .info-box ol {
-    margin-left: 20px;
-    color: #6b7280;
+    margin-left: 18px;
+    color: var(--text-secondary);
     line-height: 1.8;
+    font-size: 0.9rem;
 }
 
 .image-preview {
-    margin-top: 12px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 12px;
-    background: #f9fafb;
+    margin-top: var(--spacing-md);
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    background: var(--surface);
 }
 
 .preview-label {
-    font-size: 0.85rem;
-    color: #6b7280;
-    margin-bottom: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-sm);
 }
 
 .preview-image {
     max-width: 100%;
-    max-height: 200px;
-    border-radius: 6px;
+    max-height: 180px;
+    border-radius: var(--border-radius-sm);
     object-fit: contain;
     display: block;
     margin: 0 auto;
@@ -169,28 +178,20 @@
 
 .preview-error {
     text-align: center;
-    padding: 20px;
-    color: #d97706;
-    background: #fef3c7;
-    border-radius: 6px;
-}
-
-.mint-button.minting {
-    background: #d1d5db;
-    opacity: 0.7;
-}
-
-@keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    padding: var(--spacing-md);
+    color: var(--warning);
+    background: rgba(217, 119, 6, 0.1);
+    border: 1px solid var(--warning);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.85rem;
 }
 
 @media (max-width: 640px) {
     .mint-card {
-        padding: 24px;
+        padding: var(--spacing-lg);
     }
 
     .mint-card h1 {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
     }
 }

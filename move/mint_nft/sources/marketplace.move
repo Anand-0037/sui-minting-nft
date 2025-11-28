@@ -48,6 +48,7 @@ public struct MarketplaceCreated has copy, drop {
 
 public struct NFTListed has copy, drop {
     nft_id: ID,
+    escrow_id: ID,
     price: u64,
     seller: address,
 }
@@ -111,11 +112,14 @@ public entry fun list_nft(
         listing_id: nft_id,
     };
 
+    let escrow_id = object::id(&escrow);
+
     // Share escrow so buyer can access it
     transfer::share_object(escrow);
 
     event::emit(NFTListed {
         nft_id,
+        escrow_id,
         price,
         seller,
     });

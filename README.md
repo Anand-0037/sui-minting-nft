@@ -1,40 +1,44 @@
 # Sui NFT Minting dApp
 
-A decentralized application for minting, managing, and trading NFTs on Sui blockchain with Move smart contracts and React frontend.
+A decentralized application for minting, managing, trading, and staking NFTs on Sui blockchain with Move smart contracts and React frontend.
 
-## 📸 Screenshots
+## Screenshots
 
 ### NFT Minting Interface
+
 ![Mint NFT Website](images/mint-nft%20website.jpg)
 
 ### NFT Collection Gallery
+
 ![NFT Collection](images/nft%20collection%20images%20list.jpg)
 
 ### NFT Marketplace
+
 ![Marketplace](images/marketplace.jpg)
 
-## 🚀 Features
+## Features
 
 ### Core Features
 
-- ✅ Connect Sui Wallet
-- ✅ Mint NFTs with name, description, and image
-- ✅ Transfer NFTs to other addresses
-- ✅ View transactions on Sui Explorer
+- Connect Sui Wallet
+- Mint NFTs with name, description, and image URL
+- Transfer NFTs to other addresses
+- View transactions on Sui Explorer
 
-### Day 2 Workshop Upgrades
+### Advanced Features
 
-- 🖼️ **NFT Gallery** - View your entire NFT collection with images
-- 📤 **Transfer UI** - Send NFTs to any address with one click
-- 🏪 **NFT Marketplace** - List NFTs for sale and buy from others
-- ⚡ **Dynamic Fields** - Add attributes to NFTs after minting
-- 📦 **Batch Minting** - Mint multiple NFTs in one transaction
-- 🖼️ **Image Preview** - See your NFT image before minting
-- 🎨 **Modern UI** - Tabbed interface with responsive design
+- **NFT Gallery** - View your entire NFT collection with images
+- **Transfer UI** - Send NFTs to any address with one click
+- **NFT Marketplace** - List NFTs for sale and buy from others
+- **NFT Staking** - Stake NFTs to earn rewards over time
+- **Dynamic Fields** - Add attributes to NFTs after minting
+- **Batch Minting** - Mint multiple NFTs in one transaction
+- **Image Preview** - See your NFT image before minting
+- **Modern UI** - Tabbed interface with warm, branded design
 
 ## Quick Start
 
-### 1. Deploy Contract
+### 1. Deploy Contracts
 
 ```bash
 cd move/mint_nft
@@ -42,17 +46,29 @@ sui move build
 sui client publish --gas-budget 100000000
 ```
 
-Copy the Package ID from output. Also note the **Marketplace shared object ID** for marketplace features.
+From the deployment output, note the following:
+
+- **Package ID** - Found in the "Published Objects" section
+- **Marketplace ID** - The shared object of type `Marketplace`
+- **Staking Pool ID** - The shared object of type `StakingPool`
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions on finding these IDs.
 
 ### 2. Configure Frontend
 
-Update `app/src/components/MintNFT.js`, `NFTGallery.js`, and `Marketplace.js`:
+Update the configuration file `app/src/config.js` with your deployed contract IDs:
 
 ```javascript
-const PACKAGE_ID =
-  "0x15729923551da1f60e3e0cc443754a3d0db6c8d5b8648f3042b20b4f8dde62cd";
-const MARKETPLACE_ID =
-  "0xc32f5ea9a63bb72912583ed7e5eece5ce1ae58804d366c5237d291ee03497da2"; // For marketplace
+export const CONFIG = {
+  NETWORK: "testnet",
+
+  // Contract addresses - Update after deployment
+  PACKAGE_ID: "YOUR_PACKAGE_ID",
+  MARKETPLACE_ID: "YOUR_MARKETPLACE_ID",
+  STAKING_POOL_ID: "YOUR_STAKING_POOL_ID",
+
+  // Other settings...
+};
 ```
 
 ### 3. Run App
@@ -67,24 +83,29 @@ Opens at http://localhost:3000
 
 ## Instructions
 
-- Upload images to Imgur or IPFS when testing NFT minting
+- Upload images to Imgur, IPFS, or any public image hosting service
 - Get testnet SUI tokens: `sui client faucet`
+- Ensure your wallet is connected to Sui Testnet
 
 ## Project Structure
 
 ```
+sui-project/
 ├── move/mint_nft/
 │   ├── sources/
 │   │   ├── mint_nft.move      # Core NFT + Dynamic Fields
-│   │   └── marketplace.move   # NFT Marketplace (Day 2)
+│   │   ├── marketplace.move   # NFT Marketplace
+│   │   └── staking.move       # NFT Staking Pool
 │   ├── tests/
 │   │   └── mint_nft_tests.move
 │   └── Move.toml
 ├── app/src/
+│   ├── config.js              # Centralized configuration
 │   ├── components/
 │   │   ├── MintNFT.js         # Minting with preview
-│   │   ├── NFTGallery.js      # Collection view (Day 2)
-│   │   └── Marketplace.js     # Buy/Sell NFTs (Day 2)
+│   │   ├── NFTGallery.js      # Collection view
+│   │   ├── Marketplace.js     # Buy/Sell NFTs
+│   │   └── Staking.js         # Stake NFTs for rewards
 │   ├── App.js                 # Tab navigation
 │   └── index.js
 ├── README.md
@@ -113,14 +134,22 @@ Opens at http://localhost:3000
 | `delist_nft(marketplace, escrow)`              | Cancels listing       |
 | `update_price(marketplace, nft_id, new_price)` | Updates listing price |
 
-## Advanced Features (Day 2)
+### staking Module
+
+| Function                                 | Description                     |
+| ---------------------------------------- | ------------------------------- |
+| `stake_nft(pool, nft, clock)`            | Stakes NFT to earn rewards      |
+| `unstake_nft(pool, stake_record, clock)` | Unstakes NFT and claims rewards |
+
+## Architecture
 
 ### Shared Objects
 
-The marketplace uses **shared objects** - allowing multiple users to interact simultaneously:
+The marketplace and staking pool use shared objects, allowing multiple users to interact simultaneously:
 
 ```move
 transfer::share_object(marketplace);
+transfer::share_object(staking_pool);
 ```
 
 ### Dynamic Fields
@@ -134,7 +163,7 @@ df::add(&mut nft.id, key, value);
 
 ### Escrow Pattern
 
-NFTs are held in escrow while listed, ensuring safe trades:
+NFTs are held in escrow while listed, ensuring safe marketplace trades:
 
 ```move
 public struct Escrow has key {
@@ -144,21 +173,53 @@ public struct Escrow has key {
 }
 ```
 
+### Staking Mechanism
+
+NFTs are wrapped in StakeRecord objects that track staking duration:
+
+```move
+public struct StakeRecord has key {
+    id: UID,
+    nft: NFT,
+    stake_time_ms: u64,
+    owner: address,
+}
+```
+
+Note: The staking rewards shown are for demonstration purposes on testnet.
+
 ## Tech Stack
 
-- **Blockchain:** Sui
-- **Contract:** Move
-- **Frontend:** React
+- **Blockchain:** Sui (Testnet)
+- **Smart Contracts:** Move (2024.beta edition)
+- **Frontend:** React 18
 - **SDK:** @mysten/dapp-kit, @mysten/sui
-- **Styling:** CSS3 with modern gradients
+- **Styling:** CSS3 with modern design
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Wallet not connecting**: Ensure Sui Wallet extension is installed and set to Testnet
+2. **Transaction fails**: Check you have sufficient SUI for gas (`sui client faucet`)
+3. **NFT images not loading**: Verify the image URL is publicly accessible (use Imgur, IPFS)
+4. **Marketplace shows 0 listed**: Ensure MARKETPLACE_ID is correctly configured in config.js
+
+### Getting Test SUI
+
+```bash
+sui client faucet
+```
+
+This will request testnet SUI tokens to your active address.
 
 ## Resources
 
-- [Sui Docs](https://docs.sui.io/)
-- [Move Guide](https://move-language.github.io/move/)
-- [Sui Explorer](https://suiscan.xyz/testnet)
-- [Dynamic Fields](https://docs.sui.io/concepts/dynamic-fields)
+- [Sui Documentation](https://docs.sui.io/)
+- [Move Language Guide](https://move-language.github.io/move/)
+- [Sui Explorer (Testnet)](https://suiscan.xyz/testnet)
+- [Dynamic Fields Guide](https://docs.sui.io/concepts/dynamic-fields)
 
 ---
 
-**Workshop Project** by [Anand Vashishtha](https://github.com/Anand-0037)
+**Project** by [Anand Vashishtha](https://github.com/Anand-0037)

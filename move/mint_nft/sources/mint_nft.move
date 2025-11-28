@@ -5,6 +5,16 @@ use std::ascii;
 use sui::url::{Self, Url};
 use sui::event;
 use sui::dynamic_field as df;
+use sui::package;
+use sui::display;
+
+// Error codes
+const ENotCreator: u64 = 0;
+const EArrayLengthMismatch: u64 = 1;
+const EBatchSizeExceeded: u64 = 2;
+
+/// One-time witness for Display initialization
+public struct MINT_NFT has drop {}
 
 public struct NFT has key, store {
     id: UID,
@@ -31,6 +41,33 @@ public struct AttributeUpdated has copy, drop {
     key: String,
     old_value: String,
     new_value: String,
+}
+
+/// Initialize Display for NFTs (called once on publish)
+fun init(otw: MINT_NFT, ctx: &mut TxContext) {
+    let keys = vector[
+        b"name".to_string(),
+        b"description".to_string(),
+        b"image_url".to_string(),
+        b"creator".to_string(),
+        b"project_url".to_string(),
+    ];
+    
+    let values = vector[
+        b"{name}".to_string(),
+        b"{description}".to_string(),
+        b"{url}".to_string(),
+        b"{creator}".to_string(),
+        b"https://github.com/Anand-0037".to_string(),
+    ];
+    
+    let publisher = package::claim(otw, ctx);
+    let mut nft_display = display::new_with_fields<NFT>(&publisher, keys, values, ctx);
+    
+    display::update_version(&mut nft_display);
+    
+    transfer::public_transfer(publisher, ctx.sender());
+    transfer::public_transfer(nft_display, ctx.sender());
 }
 
 #[allow(lint(public_entry))]
@@ -78,7 +115,7 @@ public entry fun add_attribute(
     ctx: &mut TxContext
 ) {
     // Only the creator can add attributes
-    assert!(nft.creator == ctx.sender(), 0);
+    assert!(nft.creator == ctx.sender(), ENotCreator);
     
     // Add the attribute as a dynamic field
     df::add(&mut nft.id, key, value);
@@ -98,7 +135,7 @@ public entry fun update_attribute(
     new_value: String,
     ctx: &mut TxContext
 ) {
-    assert!(nft.creator == ctx.sender(), 0);
+    assert!(nft.creator == ctx.sender(), ENotCreator);
     
     let old_value = df::remove<String, String>(&mut nft.id, key);
     
@@ -120,7 +157,7 @@ public entry fun remove_attribute(
     key: String,
     ctx: &mut TxContext
 ) {
-    assert!(nft.creator == ctx.sender(), 0);
+    assert!(nft.creator == ctx.sender(), ENotCreator);
     df::remove<String, String>(&mut nft.id, key);
 }
 
@@ -148,8 +185,8 @@ public entry fun batch_mint(
     ctx: &mut TxContext
 ) {
     let len = names.length();
-    assert!(len == descriptions.length() && len == uris.length(), 1);
-    assert!(len <= MAX_BATCH_SIZE, 2); // Prevent gas exhaustion
+    assert!(len == descriptions.length() && len == uris.length(), EArrayLengthMismatch);
+    assert!(len <= MAX_BATCH_SIZE, EBatchSizeExceeded);
     
     let mut i = 0;
     while (i < len) {

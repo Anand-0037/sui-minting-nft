@@ -1,0 +1,165 @@
+/* ============================
+   Empty State - Clean Professional Design
+   ============================ */
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--spacing-2xl) var(--spacing-lg);
+    background: var(--surface);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--border-radius-lg);
+}
+
+/* Icon */
+.empty-state-icon {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-muted);
+}
+
+/* Title */
+.empty-state-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+/* Description */
+.empty-state-description {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin: 0 0 var(--spacing-lg) 0;
+    max-width: 400px;
+    line-height: 1.6;
+}
+
+/* Action Button */
+.empty-state-action {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: var(--border-radius-md);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.empty-state-action:hover {
+    background: var(--primary-hover);
+}
+
+/* Variants */
+
+/* Compact Variant */
+.empty-state-compact {
+    padding: var(--spacing-xl);
+}
+
+.empty-state-compact .empty-state-icon {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.empty-state-compact .empty-state-title {
+    font-size: 1.1rem;
+}
+
+.empty-state-compact .empty-state-description {
+    font-size: 0.85rem;
+}
+
+/* Illustrated Variant */
+.empty-state-illustrated {
+    position: relative;
+    background: var(--surface);
+}
+
+.empty-state-illustrated .empty-state-icon {
+    font-size: 2.5rem;
+    color: var(--primary);
+}
+
+/* Card Empty State (for use inside cards) */
+.card-empty-state {
+    background: transparent;
+    border: none;
+    padding: var(--spacing-lg);
+}
+
+.card-empty-state .empty-state-icon {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.card-empty-state .empty-state-title {
+    font-size: 1rem;
+}
+
+.card-empty-state .empty-state-description {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+/* Inline Empty State (for lists) */
+.inline-empty-state {
+    flex-direction: row;
+    padding: var(--spacing-md) var(--spacing-lg);
+    gap: var(--spacing-md);
+    border-style: solid;
+}
+
+.inline-empty-state .empty-state-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+}
+
+.inline-empty-state .empty-state-title {
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+.inline-empty-state .empty-state-description {
+    display: none;
+}
+
+/* Connection Required State */
+.connect-empty-state {
+    min-height: 300px;
+}
+
+.connect-empty-state .empty-state-title {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .empty-state {
+        padding: var(--spacing-xl) var(--spacing-md);
+    }
+
+    .empty-state-icon {
+        font-size: 1.5rem;
+    }
+
+    .empty-state-title {
+        font-size: 1.1rem;
+    }
+
+    .empty-state-description {
+        font-size: 0.85rem;
+    }
+
+    .inline-empty-state {
+        flex-direction: column;
+        text-align: center;
+    }
+}
