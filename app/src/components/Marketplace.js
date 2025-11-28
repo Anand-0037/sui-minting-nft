@@ -1,42 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useCurrentAccount, useSignAndExecuteTransaction, useSuiClient } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
+import { CONFIG, formatAddress, formatPrice, extractImageUrl } from '../config';
 import './Marketplace.css';
 
-const PACKAGE_ID = '0xb71b6701e4d6e9baec490494212ce78655760f73388e452ad90fb71d51c3981b';
-
-// Marketplace shared object ID from deployment
-const MARKETPLACE_ID = '0xfe0ab263064cef19889664cfa066ba4ab2945ee11ec759b93960592d9e0d2174';
-
-function ListingCard({ listing, onBuy, currentAccount, isLoading }) {
+function ListingCard({ listing, onBuy, currentAccount, loadingId }) {
     const { escrowId, nftId, nft, price, seller } = listing;
-    const priceInSui = price / 1_000_000_000;
+    const [imageError, setImageError] = useState(false);
+    const formattedPrice = formatPrice(price);
     const isOwner = currentAccount?.address === seller;
+    const isLoading = loadingId === escrowId;
 
-    // Get NFT details from the content
     const fields = nft?.content?.fields || {};
-    let imageUrl = '';
-    if (fields.url) {
-        imageUrl = typeof fields.url === 'string' ? fields.url : fields.url.fields?.url || '';
-    }
+    const imageUrl = extractImageUrl(fields);
 
     return (
         <div className="listing-card">
             <div className="listing-image-container">
-                {imageUrl ? (
+                {imageUrl && !imageError ? (
                     <img 
                         src={imageUrl} 
                         alt={fields.name || 'NFT'} 
                         className="listing-image"
-                        onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                        }}
+                        onError={() => setImageError(true)}
                     />
-                ) : null}
-                <div className="listing-image-placeholder" style={{ display: imageUrl ? 'none' : 'flex' }}>
-                    NFT
-                </div>
+                ) : (
+                    <div className="listing-image-placeholder">
+                        NFT
+                    </div>
+                )}
             </div>
 
             <div className="listing-details">
@@ -45,11 +37,11 @@ function ListingCard({ listing, onBuy, currentAccount, isLoading }) {
                 
                 <div className="listing-price">
                     <span className="price-label">Price:</span>
-                    <span className="price-value">{priceInSui.toFixed(2)} SUI</span>
+                    <span className="price-value">{formattedPrice} SUI</span>
                 </div>
 
                 <p className="listing-seller">
-                    Seller: {seller?.slice(0, 6)}...{seller?.slice(-4)}
+                    Seller: {formatAddress(seller)}
                     {isOwner && <span className="owner-badge"> (You)</span>}
                 </p>
 
@@ -58,174 +50,138 @@ function ListingCard({ listing, onBuy, currentAccount, isLoading }) {
                     onClick={() => onBuy(escrowId, nftId, price)}
                     disabled={isOwner || isLoading || !currentAccount}
                 >
-                    {isOwner ? 'Your Listing' : isLoading ? 'Processing...' : `Buy for ${priceInSui.toFixed(2)} SUI`}
+                    {isOwner ? 'Your Listing' : isLoading ? 'Processing...' : `Buy for ${formattedPrice} SUI`}
                 </button>
             </div>
         </div>
     );
 }
 
-function Marketplace({ marketplaceId = MARKETPLACE_ID }) {
+function Marketplace({ marketplaceId = CONFIG.MARKETPLACE_ID }) {
     const currentAccount = useCurrentAccount();
     const suiClient = useSuiClient();
     const { mutate: signAndExecute } = useSignAndExecuteTransaction();
     
     const [listings, setListings] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [loadingId, setLoadingId] = useState(null);
     const [status, setStatus] = useState('');
     const [isLoadingListings, setIsLoadingListings] = useState(true);
+    const [failedCount, setFailedCount] = useState(0);
 
-    // Bug #4 & #5 Fix: Optimized fetching with cleanup to prevent memory leaks
-    useEffect(() => {
-        let isCancelled = false;
-        
-        const fetchListings = async () => {
-            if (!marketplaceId) {
-                if (!isCancelled) setIsLoadingListings(false);
+    const fetchListings = useCallback(async () => {
+        if (!marketplaceId) {
+            setIsLoadingListings(false);
+            return;
+        }
+
+        try {
+            setIsLoadingListings(true);
+            
+            // Step 1: Get listing events to find escrow IDs
+            // Note: Events are used only to discover escrow IDs, not as source of truth
+            // The actual source of truth is whether the Escrow object still exists
+            const listedEvents = await suiClient.queryEvents({
+                query: { MoveEventType: `${CONFIG.PACKAGE_ID}::marketplace::NFTListed` },
+                limit: 100, // Increased limit for better coverage
+            });
+
+            if (listedEvents.data.length === 0) {
+                setListings([]);
+                setFailedCount(0);
                 return;
             }
 
-            try {
-                if (!isCancelled) setIsLoadingListings(true);
-                
-                // Fetch all events once (not per listing - fixes race condition)
-                const [listedEvents, soldEvents, delistedEvents] = await Promise.all([
-                    suiClient.queryEvents({
-                        query: { MoveEventType: `${PACKAGE_ID}::marketplace::NFTListed` },
-                        limit: 50,
-                    }),
-                    suiClient.queryEvents({
-                        query: { MoveEventType: `${PACKAGE_ID}::marketplace::NFTSold` },
-                        limit: 50,
-                    }),
-                    suiClient.queryEvents({
-                        query: { MoveEventType: `${PACKAGE_ID}::marketplace::NFTDelisted` },
-                        limit: 50,
-                    }),
-                ]);
+            // Extract escrow IDs from events
+            const escrowIds = listedEvents.data
+                .map(e => e.parsedJson?.escrow_id)
+                .filter(Boolean);
 
-                if (isCancelled) return;
-
-                // Create sets for O(1) lookup
-                const soldIds = new Set(soldEvents.data.map(e => e.parsedJson?.nft_id));
-                const delistedIds = new Set(delistedEvents.data.map(e => e.parsedJson?.nft_id));
-
-                // Filter active listings from events
-                const activeListedEvents = listedEvents.data.filter(event => {
-                    const nftId = event.parsedJson?.nft_id;
-                    return !soldIds.has(nftId) && !delistedIds.has(nftId);
-                });
-
-                // Query Escrow objects from list_nft transactions
-                const escrowQuery = await suiClient.queryTransactionBlocks({
-                    filter: {
-                        MoveFunction: {
-                            package: PACKAGE_ID,
-                            module: 'marketplace',
-                            function: 'list_nft',
-                        },
-                    },
-                    options: { showEffects: true },
-                    limit: 50,
-                });
-
-                if (isCancelled) return;
-
-                // Get shared object IDs from transactions
-                const escrowIds = [];
-                for (const tx of escrowQuery.data) {
-                    const created = tx.effects?.created || [];
-                    for (const obj of created) {
-                        if (obj.owner && typeof obj.owner === 'object' && 'Shared' in obj.owner) {
-                            escrowIds.push(obj.reference.objectId);
-                        }
-                    }
-                }
-
-                // Batch fetch all escrow objects at once (not per listing!)
-                const escrowObjects = await Promise.all(
-                    escrowIds.map(async (id) => {
-                        try {
-                            return await suiClient.getObject({
-                                id,
-                                options: { showContent: true, showType: true },
-                            });
-                        } catch {
-                            return null;
-                        }
-                    })
-                );
-
-                if (isCancelled) return;
-
-                // Create map for O(1) lookup by listing_id
-                const escrowMap = new Map();
-                for (const obj of escrowObjects) {
-                    if (!obj?.data?.content?.fields) continue;
-                    const type = obj.data?.type || '';
-                    if (!type.includes('::marketplace::Escrow')) continue;
-                    escrowMap.set(obj.data.content.fields.listing_id, obj);
-                }
-
-                // Build active listings with escrow data
-                const activeListings = [];
-                for (const event of activeListedEvents) {
-                    const { nft_id, price, seller } = event.parsedJson || {};
-                    const escrow = escrowMap.get(nft_id);
-                    
-                    if (!escrow?.data?.objectId) continue;
-
-                    const nftFields = escrow.data.content.fields.nft?.fields || {};
-                    
-                    activeListings.push({
-                        escrowId: escrow.data.objectId,
-                        nftId: nft_id,
-                        nft: { content: { fields: nftFields } },
-                        price: parseInt(price || 0),
-                        seller,
-                    });
-                }
-
-                if (!isCancelled) {
-                    setListings(activeListings);
-                }
-            } catch (error) {
-                if (!isCancelled) {
-                    console.error('Error fetching listings:', error);
-                    setStatus('Failed to load marketplace listings');
-                }
-            } finally {
-                if (!isCancelled) {
-                    setIsLoadingListings(false);
-                }
+            if (escrowIds.length === 0) {
+                setListings([]);
+                setFailedCount(0);
+                return;
             }
-        };
 
-        fetchListings();
-        
-        // Cleanup function to prevent memory leak
-        return () => {
-            isCancelled = true;
-        };
+            // Step 2: Batch fetch all escrow objects
+            // This is the SOURCE OF TRUTH - if object exists, listing is active
+            // If object was deleted (sold/delisted), it won't be returned
+            const escrowObjects = await suiClient.multiGetObjects({
+                ids: escrowIds,
+                options: { showContent: true, showType: true },
+            });
+
+            // Step 3: Process only existing escrow objects (active listings)
+            // No need to query sold/delisted events - non-existent objects = inactive
+            const activeListings = [];
+            let failed = 0;
+
+            escrowObjects.forEach((obj, index) => {
+                // If object doesn't exist or has error, it's been sold/delisted
+                if (!obj?.data || obj.error) {
+                    return; // Skip - listing no longer active
+                }
+
+                const escrowContent = obj.data.content;
+                if (!escrowContent?.fields) {
+                    failed++;
+                    return;
+                }
+
+                // Extract NFT data from escrow
+                const nftData = escrowContent.fields.nft;
+                let nftFields = {};
+                
+                if (nftData) {
+                    nftFields = nftData.fields || nftData;
+                }
+
+                // Get listing info from the original event
+                const event = listedEvents.data[index];
+                const { nft_id, price, seller } = event?.parsedJson || {};
+
+                activeListings.push({
+                    escrowId: obj.data.objectId,
+                    nftId: nft_id || escrowContent.fields.listing_id,
+                    nft: { 
+                        content: { 
+                            fields: nftFields
+                        } 
+                    },
+                    price: parseInt(price || escrowContent.fields.price || 0),
+                    seller: seller || escrowContent.fields.seller,
+                });
+            });
+
+            setListings(activeListings);
+            setFailedCount(failed);
+        } catch (error) {
+            console.error('Error fetching listings:', error);
+            setStatus('Failed to load marketplace');
+            setTimeout(() => setStatus(''), 5000);
+        } finally {
+            setIsLoadingListings(false);
+        }
     }, [marketplaceId, suiClient]);
+
+    useEffect(() => {
+        fetchListings();
+    }, [fetchListings]);
 
     const handleBuy = async (escrowId, nftId, price) => {
         if (!currentAccount || !marketplaceId) {
-            setStatus('Please connect wallet and ensure marketplace is configured');
+            setStatus('Please connect wallet');
             return;
         }
 
         setStatus('Processing purchase...');
-        setIsLoading(true);
+        setLoadingId(escrowId);
 
         try {
             const tx = new Transaction();
-
-            // Split coins for payment
             const [paymentCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(price)]);
 
             tx.moveCall({
-                target: `${PACKAGE_ID}::marketplace::buy_nft`,
+                target: `${CONFIG.PACKAGE_ID}::marketplace::buy_nft`,
                 arguments: [
                     tx.object(marketplaceId),
                     tx.object(escrowId),
@@ -236,22 +192,25 @@ function Marketplace({ marketplaceId = MARKETPLACE_ID }) {
             signAndExecute(
                 { transaction: tx },
                 {
-                    onSuccess: (result) => {
+                    onSuccess: () => {
                         setStatus('NFT purchased successfully!');
-                        setIsLoading(false);
-                        // Remove from local listings
-                        setListings(prev => prev.filter(l => l.nftId !== nftId));
-                        setTimeout(() => setStatus(''), 3000);
+                        setLoadingId(null);
+                        // Refresh listings from the server to get accurate state
+                        setTimeout(() => {
+                            fetchListings();
+                            setStatus('');
+                        }, 2000);
                     },
                     onError: (error) => {
                         setStatus(`Purchase failed: ${error.message}`);
-                        setIsLoading(false);
+                        setLoadingId(null);
+                        setTimeout(() => setStatus(''), 5000);
                     },
                 }
             );
         } catch (error) {
             setStatus(`Error: ${error.message}`);
-            setIsLoading(false);
+            setLoadingId(null);
         }
     };
 
@@ -263,14 +222,7 @@ function Marketplace({ marketplaceId = MARKETPLACE_ID }) {
                 </div>
                 <div className="marketplace-notice">
                     <h3>Marketplace Not Configured</h3>
-                    <p>To enable the marketplace, follow these steps:</p>
-                    <ol>
-                        <li>Deploy the updated contract: <code>sui client publish --gas-budget 100000000</code></li>
-                        <li>Find the Marketplace shared object ID in the output</li>
-                        <li>Update <code>MARKETPLACE_ID</code> in <code>Marketplace.js</code></li>
-                        <li>Restart the application</li>
-                    </ol>
-                    <p className="note">The marketplace uses shared objects for decentralized trading!</p>
+                    <p>Deploy the contract and update MARKETPLACE_ID in config.js</p>
                 </div>
             </div>
         );
@@ -282,6 +234,9 @@ function Marketplace({ marketplaceId = MARKETPLACE_ID }) {
                 <h2>NFT Marketplace</h2>
                 <div className="marketplace-stats">
                     <span className="stat-badge">{listings.length} Listed</span>
+                    {failedCount > 0 && (
+                        <span className="stat-badge warning">{failedCount} unavailable</span>
+                    )}
                 </div>
             </div>
 
@@ -300,7 +255,7 @@ function Marketplace({ marketplaceId = MARKETPLACE_ID }) {
             {isLoadingListings ? (
                 <div className="marketplace-loading">
                     <div className="loading-spinner"></div>
-                    <p>Loading marketplace listings...</p>
+                    <p>Loading marketplace...</p>
                 </div>
             ) : listings.length === 0 ? (
                 <div className="marketplace-empty">
@@ -311,11 +266,11 @@ function Marketplace({ marketplaceId = MARKETPLACE_ID }) {
                 <div className="listings-grid">
                     {listings.map((listing) => (
                         <ListingCard
-                            key={listing.nftId}
+                            key={listing.escrowId}
                             listing={listing}
                             onBuy={handleBuy}
                             currentAccount={currentAccount}
-                            isLoading={isLoading}
+                            loadingId={loadingId}
                         />
                     ))}
                 </div>

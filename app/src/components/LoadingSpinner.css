@@ -1,0 +1,243 @@
+/* ============================
+   Loading Spinner - Modern Web3 Design
+   ============================ */
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    gap: var(--spacing-lg);
+}
+
+.loading-fullscreen {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+/* Spinner Base */
+.spinner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Spinner Rings */
+.spinner-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    animation: spinRing 1.5s ease-in-out infinite;
+}
+
+.spinner-ring:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.spinner-ring:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.spinner-ring:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes spinRing {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Size Variants */
+.spinner-small {
+    width: 32px;
+    height: 32px;
+}
+
+.spinner-small .spinner-ring:nth-child(1) {
+    width: 32px;
+    height: 32px;
+}
+
+.spinner-small .spinner-ring:nth-child(2) {
+    width: 24px;
+    height: 24px;
+}
+
+.spinner-small .spinner-ring:nth-child(3) {
+    width: 16px;
+    height: 16px;
+}
+
+.spinner-medium {
+    width: 48px;
+    height: 48px;
+}
+
+.spinner-medium .spinner-ring:nth-child(1) {
+    width: 48px;
+    height: 48px;
+}
+
+.spinner-medium .spinner-ring:nth-child(2) {
+    width: 36px;
+    height: 36px;
+}
+
+.spinner-medium .spinner-ring:nth-child(3) {
+    width: 24px;
+    height: 24px;
+}
+
+.spinner-large {
+    width: 64px;
+    height: 64px;
+}
+
+.spinner-large .spinner-ring:nth-child(1) {
+    width: 64px;
+    height: 64px;
+}
+
+.spinner-large .spinner-ring:nth-child(2) {
+    width: 48px;
+    height: 48px;
+}
+
+.spinner-large .spinner-ring:nth-child(3) {
+    width: 32px;
+    height: 32px;
+}
+
+/* Color Variants */
+.spinner-primary .spinner-ring:nth-child(1) {
+    border-top-color: var(--primary);
+}
+
+.spinner-primary .spinner-ring:nth-child(2) {
+    border-right-color: var(--primary-light);
+}
+
+.spinner-primary .spinner-ring:nth-child(3) {
+    border-bottom-color: var(--secondary);
+}
+
+.spinner-accent .spinner-ring:nth-child(1) {
+    border-top-color: var(--accent);
+}
+
+.spinner-accent .spinner-ring:nth-child(2) {
+    border-right-color: var(--accent-light);
+}
+
+.spinner-accent .spinner-ring:nth-child(3) {
+    border-bottom-color: var(--info);
+}
+
+.spinner-gradient .spinner-ring {
+    border-image: var(--gradient-primary) 1;
+}
+
+/* Loading Message */
+.loading-message {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin: 0;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Button Spinner (inline) */
+.btn-spinner {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.btn-spinner .spinner {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-spinner .spinner-ring {
+    border-width: 2px;
+}
+
+.btn-spinner .spinner-ring:nth-child(1) {
+    width: 18px;
+    height: 18px;
+    border-top-color: currentColor;
+}
+
+.btn-spinner .spinner-ring:nth-child(2) {
+    width: 14px;
+    height: 14px;
+    border-right-color: currentColor;
+    opacity: 0.7;
+}
+
+.btn-spinner .spinner-ring:nth-child(3) {
+    width: 10px;
+    height: 10px;
+    border-bottom-color: currentColor;
+    opacity: 0.4;
+}
+
+/* Skeleton Loading */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--surface) 0%,
+        var(--surface-light) 50%,
+        var(--surface) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    border-radius: var(--border-radius-sm);
+}
+
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.skeleton-text {
+    height: 1em;
+    margin-bottom: 0.5em;
+}
+
+.skeleton-text:last-child {
+    width: 70%;
+}
+
+.skeleton-image {
+    aspect-ratio: 1;
+    width: 100%;
+}
+
+.skeleton-button {
+    height: 48px;
+    width: 100%;
+}

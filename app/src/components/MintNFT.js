@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useCurrentAccount, useSignAndExecuteTransaction, ConnectButton } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
+import { CONFIG, formatAddress, getExplorerUrl } from '../config';
 import './MintNFT.css';
-
-const PACKAGE_ID = '0xb71b6701e4d6e9baec490494212ce78655760f73388e452ad90fb71d51c3981b';
 
 function MintNFT({ onMintSuccess }) {
     const currentAccount = useCurrentAccount();
@@ -37,7 +36,7 @@ function MintNFT({ onMintSuccess }) {
             const tx = new Transaction();
 
             tx.moveCall({
-                target: `${PACKAGE_ID}::mint_nft::mint_nft`,
+                target: `${CONFIG.PACKAGE_ID}::mint_nft::mint_nft`,
                 arguments: [
                     tx.pure.string(name),
                     tx.pure.string(description),
@@ -66,6 +65,7 @@ function MintNFT({ onMintSuccess }) {
                     onError: (error) => {
                         setStatus(`Error: ${error.message}`);
                         setIsLoading(false);
+                        setTimeout(() => setStatus(''), 5000);
                     },
                 }
             );
@@ -86,7 +86,7 @@ function MintNFT({ onMintSuccess }) {
 
                 {currentAccount && (
                     <div className="connected-info">
-                        <p>Connected: {currentAccount.address.slice(0, 6)}...{currentAccount.address.slice(-4)}</p>
+                        <p>Connected: {formatAddress(currentAccount.address)}</p>
                     </div>
                 )}
 
@@ -161,7 +161,7 @@ function MintNFT({ onMintSuccess }) {
                 {txDigest && (
                     <div className="explorer-link">
                         <a
-                            href={`https://suiscan.xyz/testnet/tx/${txDigest}`}
+                            href={getExplorerUrl('tx', txDigest)}
                             target="_blank"
                             rel="noopener noreferrer"
                         >

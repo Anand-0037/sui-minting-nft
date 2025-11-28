@@ -1,12 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { createNetworkConfig, SuiClientProvider, WalletProvider, ConnectButton, useCurrentAccount } from '@mysten/dapp-kit';
 import { getFullnodeUrl } from '@mysten/sui/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@mysten/dapp-kit/dist/index.css';
 import './App.css';
+import { CONFIG, formatAddress } from './config';
 import MintNFT from './components/MintNFT';
 import NFTGallery from './components/NFTGallery';
 import Marketplace from './components/Marketplace';
+import Staking from './components/Staking';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const { networkConfig } = createNetworkConfig({
@@ -18,9 +20,10 @@ const queryClient = new QueryClient();
 // Tab navigation component
 function TabNavigation({ activeTab, setActiveTab }) {
     const tabs = [
-        { id: 'mint', label: 'Mint', icon: '' },
-        { id: 'gallery', label: 'Gallery', icon: '' },
-        { id: 'marketplace', label: 'Market', icon: '' },
+        { id: 'mint', label: 'Mint' },
+        { id: 'gallery', label: 'Gallery' },
+        { id: 'marketplace', label: 'Marketplace' },
+        { id: 'staking', label: 'Staking' },
     ];
 
     return (
@@ -45,13 +48,14 @@ function AppHeader() {
     return (
         <header className="app-header">
             <div className="header-brand">
+                <div className="brand-logo">S</div>
                 <h1>Sui NFT Studio</h1>
-                <span className="network-badge">Testnet</span>
+                <span className="network-badge">{CONFIG.NETWORK}</span>
             </div>
             <div className="header-wallet">
                 {currentAccount && (
                     <span className="wallet-address">
-                        {currentAccount.address.slice(0, 6)}...{currentAccount.address.slice(-4)}
+                        {formatAddress(currentAccount.address)}
                     </span>
                 )}
                 <ConnectButton />
@@ -64,11 +68,47 @@ function AppHeader() {
 function AppContent() {
     const [activeTab, setActiveTab] = useState('mint');
     const [refreshKey, setRefreshKey] = useState(0);
+    const currentAccount = useCurrentAccount();
 
-    // Callback to refresh gallery after minting
+    // Callback to refresh gallery after minting or staking changes
     const handleMintSuccess = useCallback(() => {
         setRefreshKey(prev => prev + 1);
     }, []);
+
+    // Handle wallet disconnect - reset to mint tab
+    useEffect(() => {
+        if (!currentAccount) {
+            setActiveTab('mint');
+        }
+    }, [currentAccount]);
+
+    // Show connect prompt if not connected
+    if (!currentAccount) {
+        return (
+            <div className="app-wrapper">
+                <AppHeader />
+                <main className="app-main">
+                    <div className="connect-prompt">
+                        <div className="connect-prompt-icon">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <path d="M9 12l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <h2>Welcome to Sui NFT Studio</h2>
+                        <p>Connect your wallet to start minting, trading, and staking NFTs on the Sui blockchain.</p>
+                        <ConnectButton />
+                    </div>
+                </main>
+                <footer className="app-footer">
+                    <div className="footer-content">
+                        <span>Built by</span>
+                        <a href="https://github.com/Anand-0037" target="_blank" rel="noopener noreferrer">Anand Vashishtha</a>
+                    </div>
+                </footer>
+            </div>
+        );
+    }
 
     return (
         <div className="app-wrapper">
@@ -80,15 +120,21 @@ function AppContent() {
                     <MintNFT onMintSuccess={handleMintSuccess} />
                 )}
                 {activeTab === 'gallery' && (
-                    <NFTGallery key={refreshKey} marketplaceId="0xfe0ab263064cef19889664cfa066ba4ab2945ee11ec759b93960592d9e0d2174" />
+                    <NFTGallery key={refreshKey} marketplaceId={CONFIG.MARKETPLACE_ID} />
                 )}
                 {activeTab === 'marketplace' && (
                     <Marketplace />
                 )}
+                {activeTab === 'staking' && (
+                    <Staking stakingPoolId={CONFIG.STAKING_POOL_ID} onStakeChange={handleMintSuccess} />
+                )}
             </main>
 
             <footer className="app-footer">
-                <p><a href="https://github.com/Anand-0037" target="_blank" rel="noopener noreferrer">@Anand-0037</a></p>
+                <div className="footer-content">
+                    <span>Built by</span>
+                    <a href="https://github.com/Anand-0037" target="_blank" rel="noopener noreferrer">Anand Vashishtha</a>
+                </div>
             </footer>
         </div>
     );
