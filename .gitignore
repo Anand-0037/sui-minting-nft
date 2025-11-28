@@ -19,7 +19,7 @@ node_modules/
 
 # Misc
 digest.txt
+project.md
 *.log
+DEPLOYMENT.md
 
-project.md 
-digest.txt
